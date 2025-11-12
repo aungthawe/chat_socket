@@ -1,11 +1,16 @@
 import GoogleProvider from "next-auth/providers/google";
+import GitHubProvider from "next-auth/providers/github";
 import type { NextAuthOptions } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_ID ?? "",
+      clientSecret: process.env.GITHUB_SECRET ?? "",
     }),
   ],
 
@@ -14,8 +19,8 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.email = profile.email ?? "";
-        token.name = profile.name ?? "";
+        token.email = (profile as { email?: string }).email ?? token.email;
+        token.name = (profile as { name?: string }).name ?? token.name;
       }
       return token;
     },
@@ -28,4 +33,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+
+  secret: process.env.AUTH_SECRET,
 };

@@ -7,14 +7,10 @@ export default function Navbar() {
 
   return (
     <nav className="flex items-center justify-between px-6 py-3 bg-white shadow">
-      <h1 className="font-bold text-xl">💬 ChatApp</h1>
+      <h1 className="font-bold text-xl">ChatApp</h1>
+
       {session ? (
         <div className="flex items-center gap-3">
-          <img
-            src={session.user?.image ?? ""}
-            alt="profile"
-            className="w-8 h-8 rounded-full border"
-          />
           <span>{session.user?.name}</span>
           <button
             onClick={() => signOut()}
@@ -24,12 +20,20 @@ export default function Navbar() {
           </button>
         </div>
       ) : (
-        <button
-          onClick={() => signIn("google")}
-          className="bg-blue-500 text-white px-3 py-1 rounded"
-        >
-          Sign In with Google
-        </button>
+        <div className="flex gap-3 items-center justify-end">
+          <button
+            onClick={() => signIn("google")}
+            className="bg-yellow-500 text-white px-3 py-1 rounded"
+          >
+            Sign In with Google
+          </button>
+          <button
+            onClick={() => signIn("github")}
+            className="bg-gray-800 text-white px-3 py-1 rounded"
+          >
+            Sign In with GitHub
+          </button>
+        </div>
       )}
     </nav>
   );
