@@ -1,32 +1,11 @@
+// app/api/socket/route.ts
 import { Server } from "socket.io";
-import { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-declare global {
-  // 👇 Add a type-safe global variable
-  var io: Server | undefined;
-}
+export const GET = async (req: Request) => {
+  // NOTE: Only works if you attach to Next.js server adapter
+  return NextResponse.json({ message: "Socket endpoint (use server adapter)" });
+};
 
-export async function GET(req: NextRequest) {
-  if (!global.io) {
-    const io = new Server(3001, {
-      cors: { origin: "*" },
-    });
-
-    io.on("connection", (socket) => {
-      console.log(" New client connected:", socket.id);
-
-      socket.on("send_message", (msg) => {
-        io.emit("receive_message", msg);
-      });
-
-      socket.on("disconnect", () => {
-        console.log(" Client disconnected");
-      });
-    });
-
-    global.io = io; // <-- Type-safe now
-    console.log("⚡ Socket.io server started on port 3001");
-  }
-
-  return new Response("Socket server is running");
-}
+// For dev/testing, you often run a separate Node server:
+// node server.js with Socket.IO listening

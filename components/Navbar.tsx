@@ -1,9 +1,20 @@
 "use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
+import { toast } from "sonner";
 
 export default function Navbar() {
   const { data: session } = useSession();
+
+  const handleSignIn = async (provider: "google" | "github") => {
+    await signIn(provider, { redirect: false });
+    toast.success("Signed in successfully!");
+  };
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    toast.success("Signed out successfully!");
+  };
 
   return (
     <nav className="flex items-center justify-between px-6 py-3 bg-white shadow">
@@ -11,24 +22,24 @@ export default function Navbar() {
 
       {session ? (
         <div className="flex items-center gap-3">
-          <span>{session.user?.name}</span>
+          <span>Hi, {session.user?.name}</span>
           <button
-            onClick={() => signOut()}
+            onClick={handleSignOut}
             className="bg-red-500 text-white px-3 py-1 rounded"
           >
             Sign Out
           </button>
         </div>
       ) : (
-        <div className="flex gap-3 items-center justify-end">
+        <div className="flex gap-3 items-center">
           <button
-            onClick={() => signIn("google")}
+            onClick={() => handleSignIn("google")}
             className="bg-yellow-500 text-white px-3 py-1 rounded"
           >
             Sign In with Google
           </button>
           <button
-            onClick={() => signIn("github")}
+            onClick={() => handleSignIn("github")}
             className="bg-gray-800 text-white px-3 py-1 rounded"
           >
             Sign In with GitHub

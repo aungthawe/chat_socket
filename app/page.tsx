@@ -1,16 +1,15 @@
-"use client"
 import Navbar from "@/components/Navbar";
 import ChatBox from "@/components/ChatBox";
+import { Toaster } from "sonner";
 
 export default function Home() {
   return (
-    <div>
-      Hello 1
+    <>
       <Navbar />
-      <main className="p-4 max-w-2xl mx-auto">
-        Hello 2
+      <main className="p-4">
         <ChatBox />
       </main>
-    </div>
+      <Toaster richColors position="top-center" />
+    </>
   );
 }

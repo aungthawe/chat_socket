@@ -1,52 +1,64 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { socket } from "@/lib/socket";
 import { useSession } from "next-auth/react";
+import { io, Socket } from "socket.io-client";
+
+let socket: Socket;
 
 export default function ChatBox() {
   const { data: session } = useSession();
-  const [message, setMessage] = useState("");
-  const [chat, setChat] = useState<{ user: string; text: string }[]>([]);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [input, setInput] = useState("");
 
   useEffect(() => {
-    socket.on("receive_message", (msg) => {
-      setChat((prev) => [...prev, msg]);
+    // Connect only once
+    socket = io("http://localhost:3001"); // Socket.IO server URL
+
+    socket.on("chat message", (msg: string) => {
+      setMessages((prev) => [...prev, msg]);
     });
+
     return () => {
-      socket.off("receive_message");
+      socket.disconnect();
     };
   }, []);
 
-  const sendMessage = () => {
-    if (!message.trim() || !session?.user?.name) return;
-    const msg = { user: session.user.name, text: message };
-    socket.emit("send_message", msg);
-    setChat((prev) => [...prev, msg]);
-    setMessage("");
+  const handleSend = () => {
+    if (!session || input.trim() === "") return;
+
+    // Send to server
+    socket.emit("chat message", `${session.user?.name}: ${input}`);
+    setInput("");
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="border rounded p-3 h-80 overflow-y-auto bg-white">
-        {chat.map((m, i) => (
-          <div key={i}>
-            <strong>{m.user}: </strong>
-            {m.text}
+    <div className="border rounded-md p-4 mt-4 max-w-2xl mx-auto">
+      {!session && (
+        <p className="text-red-500 mb-2">You must sign in to send messages.</p>
+      )}
+
+      <div className="flex flex-col gap-2 mb-3 max-h-64 overflow-y-auto">
+        {messages.map((msg, idx) => (
+          <div key={idx} className="p-2 rounded bg-blue-100">
+            {msg}
           </div>
         ))}
       </div>
 
-      <div className="flex">
+      <div className="flex gap-2">
         <input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="border p-2 flex-grow rounded-l"
+          type="text"
           placeholder="Type a message..."
+          className="flex-1 border rounded px-3 py-1"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={!session}
         />
         <button
-          onClick={sendMessage}
-          className="bg-blue-600 text-white px-4 py-2 rounded-r"
+          onClick={handleSend}
+          disabled={!session || input.trim() === ""}
+          className="bg-blue-500 text-white px-3 py-1 rounded disabled:opacity-50"
         >
           Send
         </button>
