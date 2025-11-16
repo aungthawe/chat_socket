@@ -1,30 +1,47 @@
 "use client";
 
-import { useState } from "react";
-import OnlineUsers from "@/components/OnlineUsers";
+import { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
+import OnlineUserList from "@/components/OnlineUsers";
 import ChatBox from "@/components/ChatBox2";
-import { useSession } from "next-auth/react";
 
-export default function Page() {
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const { data: session } = useSession();
+let socket: Socket | null = null;
 
-  if (!session)
-    return <div className="p-4">Please sign in to start chatting.</div>;
+export default function ChatPage() {
+  const [currentUserId] = useState(() => {
+    return "user-" + Math.floor(Math.random() * 10000);
+  });
+
+  const [onlineUsers, setOnlineUsers] = useState<Record<string, string>>({});
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    socket = io("http://localhost:4000");
+
+    socket.on("connect", () => {
+      socket?.emit("user-online", currentUserId);
+    });
+
+    socket.on("online-users", (users) => {
+      setOnlineUsers(users);
+    });
+
+    return () => {
+      socket?.disconnect();
+    };
+  }, []);
 
   return (
-    <div className="p-4 flex gap-4">
-      <div className="w-1/3">
-        <OnlineUsers onSelect={(u) => setSelectedUser(u)} />
-      </div>
+    <div className="flex h-screen">
+      {/* Online Users List */}
+      <OnlineUserList
+        onlineUsers={onlineUsers}
+        onSelect={setSelectedUserId}
+        currentUserId={currentUserId}
+      />
 
-      <div className="flex-1">
-        {selectedUser ? (
-          <ChatBox recipientId={selectedUser} />
-        ) : (
-          <div className="text-gray-500 mt-10">Select a user to chat</div>
-        )}
-      </div>
+      {/* Chat Box */}
+      <ChatBox currentUserId={currentUserId} receiverId={selectedUserId} />
     </div>
   );
 }
