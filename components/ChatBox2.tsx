@@ -11,21 +11,32 @@ interface ChatBoxProps {
 }
 
 export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
-  const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
-    []
-  );
+  const [allMessages, setAllMessages] = useState<
+    Record<string, { sender: string; text: string }[]>
+  >({});
   const [input, setInput] = useState("");
 
+  // INITIALIZE SOCKET
   useEffect(() => {
     if (!socket) {
       socket = io("http://localhost:4000");
 
+      // Listen for incoming private message
       socket.on("private-message", ({ senderId, message }) => {
-        setMessages((prev) => [...prev, { sender: senderId, text: message }]);
+        console.log("💬 Incoming Message:", senderId, message);
+
+        setAllMessages((prev) => ({
+          ...prev,
+          [senderId]: [
+            ...(prev[senderId] || []),
+            { sender: senderId, text: message },
+          ],
+        }));
       });
     }
   }, []);
 
+  // SEND MESSAGE
   const sendMessage = () => {
     if (!receiverId || !input.trim()) return;
 
@@ -35,10 +46,28 @@ export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
       message: input,
     });
 
-    setMessages((prev) => [...prev, { sender: "You", text: input }]);
+    // Store outgoing message in receiver's chat
+    setAllMessages((prev) => ({
+      ...prev,
+      [receiverId]: [
+        ...(prev[receiverId] || []),
+        { sender: "You", text: input },
+      ],
+    }));
+
+    console.log(
+      "📤 Sent → Receiver:",
+      receiverId,
+      "| Sender:",
+      currentUserId,
+      "| Message:",
+      input
+    );
+
     setInput("");
   };
 
+  // NO RECEIVER SELECTED
   if (!receiverId) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-500">
@@ -47,12 +76,14 @@ export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
     );
   }
 
+  const messages = allMessages[receiverId] || [];
+
   return (
     <div className="flex flex-col flex-1 bg-gray-100 h-full">
       <div className="flex-1 p-4 overflow-y-auto">
         {messages.map((m, idx) => (
           <div key={idx} className="mb-2">
-            <strong>{m.sender}:</strong> {m.text}
+            <strong>{m.sender}: </strong> {m.text}
           </div>
         ))}
       </div>
