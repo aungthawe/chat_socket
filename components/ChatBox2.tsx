@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import socket from "@/lib/socket";
-import ChatPage from "./ChatPage";
 
 interface PrivateMessagePayload {
   senderId: string;
@@ -104,7 +103,7 @@ export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
 
   return (
     <div className="flex flex-col flex-1 bg-gray-100 h-full">
-      {/* <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-4 overflow-y-auto">
         {messages.map((msg, idx) => (
           <div key={idx} className="mb-2">
             <strong>{msg.sender}: </strong> {msg.text}
@@ -125,9 +124,7 @@ export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
         >
           Send
         </button>
-      </div> */}
-
-      <ChatPage />
+      </div>
     </div>
   );
 }

@@ -33,7 +33,7 @@ socket.on("send-private", ({ senderId, receiverId, message }) => {
   console.log("Message received on server:");
   console.log("Sender:", senderId);
   console.log("Receiver:", receiverId);
-  console.log("OnlineUsers map:", onlineUsers);
+  //console.log("OnlineUsers map:", onlineUsers);
 
   const receiverSocketId = onlineUsers[receiverId];
   console.log("Resolved socket ID:", receiverSocketId);

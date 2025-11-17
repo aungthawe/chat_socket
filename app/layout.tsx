@@ -12,7 +12,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SessionProvider>
-          <Navbar/>{children}</SessionProvider>
+          {children}</SessionProvider>
       </body>
     </html>
   );

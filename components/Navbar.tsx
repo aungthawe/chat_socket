@@ -18,14 +18,14 @@ export default function Navbar() {
 
   return (
     <nav className="flex items-center justify-between px-6 py-3 bg-white shadow">
-      <h1 className="font-bold text-xl">ChatApp</h1>
+      <h1 className="font-bold text-2xl">ChatApp</h1>
 
       {session ? (
         <div className="flex items-center gap-3">
           <span>Hi, {session.user?.name}</span>
           <button
             onClick={handleSignOut}
-            className="bg-red-500 text-white px-3 py-1 rounded"
+            className="bg-purple-600  text-white px-3 py-1 rounded-xl shadow-sm cursor-pointer"
           >
             Sign Out
           </button>
@@ -40,7 +40,7 @@ export default function Navbar() {
           </button>
           <button
             onClick={() => handleSignIn("github")}
-            className="bg-gray-800 text-white px-3 py-1 rounded"
+            className="bg-purple-600  text-white px-3 py-1 rounded"
           >
             Sign In with GitHub
           </button>

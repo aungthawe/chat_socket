@@ -1,16 +1,18 @@
+"use client";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
 export default function ChatPage() {
   const [socket, setSocket] = useState(null);
-  const [userId, setUserId] = useState(""); // current user
+  const [userId, setUserId] = useState("");
   const [onlineUsers, setOnlineUsers] = useState({});
   const [selectedUser, setSelectedUser] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState({});
   const [msgInput, setMsgInput] = useState("");
 
-  // Generate a fake user id for demo
-  // You can replace with your auth system later
+  const chatMessages = messages[selectedUser] || [];
+
+  // Generate user id
   useEffect(() => {
     const savedId = localStorage.getItem("userId");
     if (savedId) {
@@ -22,7 +24,7 @@ export default function ChatPage() {
     }
   }, []);
 
-  // Connect to socket.io when userId is ready
+  // Connect to socket
   useEffect(() => {
     if (!userId) return;
 
@@ -30,18 +32,21 @@ export default function ChatPage() {
     setSocket(s);
 
     s.on("connect", () => {
-      // Announce yourself to the server
       s.emit("user-online", userId);
     });
 
-    // receive updated list of online users
     s.on("online-users", (users) => {
       setOnlineUsers(users);
     });
 
-    // receive private messages
     s.on("private-message", ({ senderId, message }) => {
-      setMessages((prev) => [...prev, { senderId, message, incoming: true }]);
+      setMessages((prev) => ({
+        ...prev,
+        [senderId]: [
+          ...(prev[senderId] || []),
+          { senderId, message, incoming: true },
+        ],
+      }));
     });
 
     return () => {
@@ -49,7 +54,6 @@ export default function ChatPage() {
     };
   }, [userId]);
 
-  // send message
   const sendMessage = () => {
     if (!msgInput.trim() || !selectedUser) return;
 
@@ -61,69 +65,79 @@ export default function ChatPage() {
 
     socket.emit("send-private", msgObject);
 
-    setMessages((prev) => [
+    setMessages((prev) => ({
       ...prev,
-      { senderId: userId, message: msgInput, incoming: false },
-    ]);
+      [selectedUser]: [
+        ...(prev[selectedUser] || []),
+        { senderId: userId, message: msgInput, incoming: false },
+      ],
+    }));
 
     setMsgInput("");
   };
 
   return (
-    <div className="flex h-screen">
-      {/* LEFT: Online users */}
-      <div className="w-64 border-r border-gray-300 p-4">
-        <h2 className="text-lg font-bold mb-3">Online Users</h2>
+    <div className="flex min-h-screen bg-gray-100">
+      {/* SIDEBAR */}
+      <div className="w-72 bg-white shadow-sm p-4 flex flex-col">
+        <h2 className="text-lg font-bold mb-5 text-purple-700">Online Users</h2>
 
-        {Object.keys(onlineUsers)
-          .filter((id) => id !== userId)
-          .map((id) => (
-            <div
-              key={id}
-              className={`p-2 cursor-pointer rounded mb-2 
-                ${
-                  selectedUser === id
-                    ? "bg-purple-600 text-white"
-                    : "bg-gray-200"
-                }`}
-              onClick={() => setSelectedUser(id)}
-            >
-              {id}
-            </div>
-          ))}
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {Object.keys(onlineUsers)
+            .filter((id) => id !== userId)
+            .map((id) => (
+              <div
+                key={id}
+                onClick={() => setSelectedUser(id)}
+                className={`p-3 rounded-lg cursor-pointer transition-all border 
+                  ${
+                    selectedUser === id
+                      ? "bg-purple-600 text-white border-purple-700 shadow"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+              >
+                <div className="font-medium">{id}</div>
+              </div>
+            ))}
+        </div>
       </div>
 
-      {/* RIGHT: Chat area */}
+      {/* CHAT PANEL */}
       <div className="flex-1 flex flex-col">
-        <div className="flex-1 p-4 overflow-y-auto">
-          <h2 className="text-xl font-semibold mb-4">
-            Chat with: {selectedUser || "No one yet 😅"}
+        {/* Chat Top Bar */}
+        <div className="p-4  bg-white sticky top-0 z-10">
+          <h2 className="text-md text-gray-700">
+            {selectedUser
+              ? `Chat with: ${selectedUser}`
+              : "Select a user to chat 😅"}
           </h2>
+        </div>
 
+        {/* Messages */}
+        <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
           <div className="space-y-3">
-            {messages
-              .filter((m) => m.senderId === selectedUser || !m.incoming)
-              .map((m, index) => (
-                <div
-                  key={index}
-                  className={`p-2 rounded max-w-sm ${
+            {chatMessages.map((m, index) => (
+              <div
+                key={index}
+                className={`max-w-xs p-3 rounded-xl shadow-md text-sm break-words
+                  ${
                     m.incoming
-                      ? "bg-gray-300 text-black"
+                      ? "bg-white text-gray-800 "
                       : "bg-purple-600 text-white ml-auto"
                   }`}
-                >
-                  {m.message}
-                </div>
-              ))}
+              >
+                {m.message}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Message input */}
+        {/* Input */}
         {selectedUser && (
-          <div className="flex p-3 border-t">
+          <div className="p-4  bg-white flex items-center gap-3 sticky bottom-0">
             <input
-              className="flex-1 p-2 border rounded"
-              placeholder="Say something..."
+              className="flex-1 p-3 border rounded-xl bg-gray-100 focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none transition"
+              placeholder="Type a message..."
               value={msgInput}
               onChange={(e) => setMsgInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
@@ -131,7 +145,7 @@ export default function ChatPage() {
 
             <button
               onClick={sendMessage}
-              className="ml-2 px-4 py-2 bg-purple-600 text-white rounded"
+              className="px-5 py-3 bg-purple-600 text-white font-medium rounded-xl hover:bg-purple-700 transition"
             >
               Send
             </button>
