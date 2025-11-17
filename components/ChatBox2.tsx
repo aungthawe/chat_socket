@@ -1,52 +1,84 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import socket from "@/lib/socket";
 
-let socket: Socket | null = null;
+interface PrivateMessagePayload {
+  senderId: string;
+  message: string;
+}
+
+interface SendMessagePayload {
+  senderId: string;
+  receiverId: string;
+  message: string;
+}
 
 interface ChatBoxProps {
   currentUserId: string;
   receiverId: string | null;
 }
 
+interface ChatMessage {
+  sender: string;
+  text: string;
+}
+
 export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
-  const [allMessages, setAllMessages] = useState<
-    Record<string, { sender: string; text: string }[]>
-  >({});
+  const [allMessages, setAllMessages] = useState<Record<string, ChatMessage[]>>(
+    {}
+  );
   const [input, setInput] = useState("");
 
-  // INITIALIZE SOCKET
+  // 🔌 CONNECT & REGISTER USER ONLINE
   useEffect(() => {
-    if (!socket) {
-      socket = io("http://localhost:4000");
+    if (!currentUserId) return;
 
-      // Listen for incoming private message
-      socket.on("private-message", ({ senderId, message }) => {
-        console.log("💬 Incoming Message:", senderId, message);
-
-        setAllMessages((prev) => ({
-          ...prev,
-          [senderId]: [
-            ...(prev[senderId] || []),
-            { sender: senderId, text: message },
-          ],
-        }));
-      });
+    if (!socket.connected) {
+      socket.connect();
     }
-  }, []);
 
-  // SEND MESSAGE
+    // ➜ Register user on server
+    socket.emit("user-online", currentUserId);
+
+    // ➜ Listen for private messages
+    const handleIncomingMessage = ({
+      senderId,
+      message,
+    }: PrivateMessagePayload) => {
+      console.log("💬 Received:", senderId, message);
+
+      setAllMessages((prev) => ({
+        ...prev,
+        [senderId]: [
+          ...(prev[senderId] || []),
+          { sender: senderId, text: message },
+        ],
+      }));
+    };
+
+    socket.on("private-message", handleIncomingMessage);
+
+    return () => {
+      socket.off("private-message", handleIncomingMessage);
+    };
+  }, [currentUserId]);
+
+  // 📤 SEND MESSAGE
   const sendMessage = () => {
     if (!receiverId || !input.trim()) return;
 
-    socket?.emit("send-private", {
+    const payload: SendMessagePayload = {
       senderId: currentUserId,
       receiverId,
       message: input,
-    });
+    };
 
-    // Store outgoing message in receiver's chat
+    socket.emit("send-private", payload);
+
+    console.log("📤 Sent:", payload);
+
+    // Show message in UI instantly
     setAllMessages((prev) => ({
       ...prev,
       [receiverId]: [
@@ -55,19 +87,10 @@ export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
       ],
     }));
 
-    console.log(
-      "📤 Sent → Receiver:",
-      receiverId,
-      "| Sender:",
-      currentUserId,
-      "| Message:",
-      input
-    );
-
     setInput("");
   };
 
-  // NO RECEIVER SELECTED
+  // 🛑 NO RECEIVER SELECTED
   if (!receiverId) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-500">
@@ -81,9 +104,9 @@ export default function ChatBox({ currentUserId, receiverId }: ChatBoxProps) {
   return (
     <div className="flex flex-col flex-1 bg-gray-100 h-full">
       <div className="flex-1 p-4 overflow-y-auto">
-        {messages.map((m, idx) => (
+        {messages.map((msg, idx) => (
           <div key={idx} className="mb-2">
-            <strong>{m.sender}: </strong> {m.text}
+            <strong>{msg.sender}: </strong> {msg.text}
           </div>
         ))}
       </div>

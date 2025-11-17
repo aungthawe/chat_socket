@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import OnlineUserList from "@/components/OnlineUsers";
 import ChatBox from "@/components/ChatBox2";
-
+import Navbar from "@/components/Navbar";
 let socket: Socket | null = null;
 
 export default function ChatPage() {
@@ -33,6 +33,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen">
+      {/* <Navbar /> */}
       {/* Online Users List */}
       <OnlineUserList
         onlineUsers={onlineUsers}

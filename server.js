@@ -22,7 +22,6 @@ let onlineUsers = {};
 
 io.on("connection", (socket) => {
   console.log("Current map:", onlineUsers);
-
   console.log("User connected:", socket.id);
 
   // WHEN USER LOGS IN
@@ -34,7 +33,7 @@ io.on("connection", (socket) => {
   });
 
   // SEND PRIVATE MESSAGE
-  socket.on("send-private", ({ senderId, receiverId, message }) => {
+socket.on("send-private", ({ senderId, receiverId, message }) => {
   console.log("Message received on server:");
   console.log("Sender:", senderId);
   console.log("Receiver:", receiverId);
