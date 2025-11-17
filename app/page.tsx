@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import OnlineUserList from "@/components/OnlineUsers";
 import ChatBox from "@/components/ChatBox2";
-import Navbar from "@/components/Navbar";
+import ChatPage from "@/components/ChatPage";
+
 let socket: Socket | null = null;
 
-export default function ChatPage() {
+export default function Page() {
   const [currentUserId] = useState(() => {
     return "user-" + Math.floor(Math.random() * 10000);
   });
@@ -33,16 +34,18 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen">
-      {/* <Navbar /> */}
-      {/* Online Users List */}
-      <OnlineUserList
+     
+      
+      {/* <OnlineUserList
         onlineUsers={onlineUsers}
         onSelect={setSelectedUserId}
         currentUserId={currentUserId}
       />
+      
+    
+      <ChatBox currentUserId={currentUserId} receiverId={selectedUserId} /> */}
 
-      {/* Chat Box */}
-      <ChatBox currentUserId={currentUserId} receiverId={selectedUserId} />
+      <ChatPage/>
     </div>
   );
 }
