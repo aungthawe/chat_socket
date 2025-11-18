@@ -22,26 +22,28 @@ io.on("connection", (socket) => {
   console.log("Current map:", onlineUsers);
   console.log("User connected:", socket.id);
 
-  socket.on("user-online", (userId) => {
-    onlineUsers[userId] = socket.id;
+  socket.on("user-online", ({ name, image }) => {
+  onlineUsers[name] = { socketId: socket.id, image };
+  io.emit("online-users", onlineUsers);
+  console.log("online-uses: "+ onlineUsers);
+});
 
-    io.emit("online-users", onlineUsers); // SEND UPDATED LIST TO EVERYONE
-    console.log("Online Users:", onlineUsers);
-  });
 
-socket.on("send-private", ({ senderId, receiverId, message }) => {
+socket.on("send-private", ({ senderId, receiverId,message }) => {
   console.log("Message received on server:");
   console.log("Sender:", senderId);
   console.log("Receiver:", receiverId);
+  // console.log("Sent At: "+ sentAt);
   //console.log("OnlineUsers map:", onlineUsers);
 
-  const receiverSocketId = onlineUsers[receiverId];
+  const receiverSocketId = onlineUsers[receiverId].socketId;
   console.log("Resolved socket ID:", receiverSocketId);
 
   if (receiverSocketId) {
     io.to(receiverSocketId).emit("private-message", {
       senderId,
       message,
+   
     });
   }
 });
