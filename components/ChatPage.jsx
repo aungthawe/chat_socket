@@ -144,28 +144,6 @@ export default function ChatPage() {
 
         {/* Messages */}
         <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-          {/* <div className="space-y-3">
-            {chatMessages.map((m, index) => (
-              <div
-                key={index}
-                className={`max-w-xs p-3 rounded-xl shadow-md text-sm break-words
-                  ${
-                    m.incoming
-                      ? "bg-white text-gray-800 self-start"
-                      : "bg-purple-600 text-white ml-auto self-stop"
-                  }`}
-              >
-                <img
-                  src={m.image}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <div className="text-xs opacity-70">
-                  {m.senderId} • {m.time}
-                </div>
-                <div>{m.message}</div>
-              </div>
-            ))}
-          </div> */}
           <div className="space-y-4">
             {chatMessages.map((m, index) => (
               <div
@@ -174,7 +152,7 @@ export default function ChatPage() {
                   m.incoming ? "justify-start" : "justify-end"
                 }`}
               >
-                {/* Incoming: show avatar on the left */}
+                {/* Incoming avatar */}
                 {m.incoming && (
                   <img
                     src={m.image}
@@ -184,39 +162,22 @@ export default function ChatPage() {
 
                 {/* MESSAGE BUBBLE */}
                 <div
-                  className={`relative max-w-xs p-3 text-sm shadow-md break-words
+                  className={`max-w-xs p-3 text-sm shadow-md break-words
           ${
             m.incoming
-              ? "bg-white text-gray-800 rounded-xl"
-              : "bg-purple-600 text-white rounded-xl"
+              ? "bg-purple-200 text-gray-900 message-bubble-received"
+              : "bg-purple-600 text-white message-bubble-sent"
           }
         `}
                 >
-                  {/* Bubble Tail */}
-                  {m.incoming ? (
-                    <span
-                      className="absolute left-0 top-3 -ml-2 
-              w-0 h-0 border-t-8 border-b-8 border-r-8 
-              border-t-transparent border-b-transparent border-r-white"
-                    />
-                  ) : (
-                    <span
-                      className="absolute right-0 top-3 -mr-2 
-              w-0 h-0 border-t-8 border-b-8 border-l-8 
-              border-t-transparent border-b-transparent border-l-purple-600"
-                    />
-                  )}
-
-                  {/* Sender + Time */}
-                  <div className="text-[10px] opacity-70 mb-1">
+                  <div className="text-[10px]  mb-1">
                     {m.senderId} • {m.time}
                   </div>
 
-                  {/* Message */}
                   <div>{m.message}</div>
                 </div>
 
-                {/* Outgoing: show avatar on the right */}
+                {/* Outgoing avatar */}
                 {!m.incoming && (
                   <img
                     src={m.image}

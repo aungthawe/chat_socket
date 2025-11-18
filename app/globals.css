@@ -4,3 +4,11 @@ body {
   color: black;
   font-family: Arial, Helvetica, sans-serif;
 }
+.message-bubble-sent {
+  border-radius: 10px 20px 0 18px;
+}
+
+.message-bubble-received {
+  border-radius: 20px 10px 18px 0;
+}
+
