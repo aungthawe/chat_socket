@@ -13,6 +13,7 @@ export default function ChatPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState({});
   const [msgInput, setMsgInput] = useState("");
+  const [typing, setTyping] = useState(false);
 
   const chatMessages = messages[selectedUser] || [];
   const [profileImage, setProfileImage] = useState("");
@@ -42,7 +43,16 @@ export default function ChatPage() {
       setOnlineUsers(users);
       console.log(users);
     });
+    s.on("typing", ({ senderId }) => {
+      if (senderId === selectedUser) {
+        setTyping(true);
 
+        clearTimeout(window.typingTimeout);
+        window.typingTimeout = setTimeout(() => {
+          setTyping(false);
+        }, 1400);
+      }
+    });
     s.on("private-message", ({ senderId, message }) => {
       setMessages((prev) => ({
         ...prev,
@@ -65,7 +75,7 @@ export default function ChatPage() {
     return () => {
       s.disconnect();
     };
-  }, [userId]);
+  }, [userId, selectedUser]);
 
   const sendMessage = () => {
     if (!msgInput.trim() || !selectedUser) return;
@@ -130,9 +140,9 @@ export default function ChatPage() {
       </div>
 
       {/* CHAT PANEL */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ">
         {/* Chat Top Bar */}
-        <div className="p-4  bg-gray-50 sticky top-0 z-10">
+        <div className="p-2  bg-gray-50 sticky top-0 z-10">
           <h2
             className={`text-md text-gray-700 ${
               selectedUser ? "font-md" : "text-center mt-2"
@@ -141,9 +151,16 @@ export default function ChatPage() {
             {selectedUser ? `${selectedUser}` : "Select a user to chat "}
           </h2>
         </div>
+        <div className="h-6 bg-gray-50 pl-2">
+          {typing && (
+            <div className="text-sm text-purple-500  animate-pulse">
+              {selectedUser} is typing...
+            </div>
+          )}
+        </div>
 
         {/* Messages */}
-        <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+        <div className="flex-1 pl-4 overflow-y-auto bg-gray-50">
           <div className="space-y-4">
             {chatMessages.map((m, index) => (
               <div
@@ -196,7 +213,14 @@ export default function ChatPage() {
               className="p-3 rounded-xl bg-gray-200 focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none transition"
               placeholder="Type a message..."
               value={msgInput}
-              onChange={(e) => setMsgInput(e.target.value)}
+              onChange={(e) => {
+                setMsgInput(e.target.value);
+                socket.emit("typing", {
+                  senderId: userId,
+                  receiverId: selectedUser,
+                });
+                console.log("typing set");
+              }}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
 

@@ -26,6 +26,16 @@ io.on("connection", (socket) => {
   onlineUsers[name] = { socketId: socket.id, image };
   io.emit("online-users", onlineUsers);
   console.log("online-uses: "+ onlineUsers);
+
+  socket.on("typing", ({ senderId, receiverId }) => {
+  const receiverSocketId = onlineUsers[receiverId]?.socketId || onlineUsers[receiverId];
+  //console.log("typing user:"+ senderId + ",to receiver:"+ receiverId + ": socket_ID : "+ receiverSocketId);
+
+  if (receiverSocketId) {
+    io.to(receiverSocketId).emit("typing", { senderId });
+  }
+});
+
 });
 
 
